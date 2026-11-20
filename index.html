@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GhapherOS · Centro de comando</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/Pass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#06080d; --panel:rgba(7,13,20,.78); --line:rgba(0,240,255,.24); --line2:rgba(0,240,255,.12);
+  --fg:#d8f4ff; --muted:#6f8fa3;
+  --amber:#ff7b00; --cyan:#00f0ff; --red:#ff2a4b; --green:#00e676; --slate:#3c4d61;
+}
+html,body{height:100%; margin:0; background:var(--bg); color:var(--fg)}
+body{font:400 13px/1.45 "Inter", system-ui, sans-serif; padding-inline:max(0px, env(safe-area-inset-left,0px)) max(0px, env(safe-area-inset-right,0px))}
+*{box-sizing:border-box}
+button,select,input{font:500 12px/1 "JetBrains Mono", monospace; color:var(--fg); background:transparent; border:1px solid var(--line); border-radius:4px; padding:8px 10px}
+button{cursor:pointer; white-space:nowrap}
+button:hover{border-color:var(--cyan)}
+button:focus-visible{outline:2px solid var(--cyan); outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--cyan); color:var(--cyan); background:rgba(0,240,255,.08)}
+select{background:#0a1118}
+textarea{font:400 11px/1.4 "JetBrains Mono", monospace; color:var(--cyan); background:#03060a; border:1px solid var(--line2); border-radius:4px; padding:8px; width:100%}
+
+.app{height:100%; display:grid; padding-inline:16px; grid-template-areas:"top" "stage" "bottom"; grid-template-rows:auto minmax(0,1fr) auto; gap:10px; padding-block:10px}
+.hud{background:var(--panel); border:1px solid var(--line2); border-radius:8px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px)}
+.top{grid-area:top; padding:10px 14px; display:grid; gap:10px; grid-template-columns:minmax(0,1fr) auto; align-items:center}
+.sys{font:700 14px/1.2 "JetBrains Mono", monospace; color:var(--cyan); letter-spacing:.04em; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.sub{font:400 11px/1.3 "JetBrains Mono", monospace; color:var(--muted); letter-spacing:.04em}
+.scen{display:flex; gap:6px; flex-wrap:wrap}
+.kpis{grid-column:1/-1; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px}
+.kpi{border:1px solid var(--line2); border-left:2px solid var(--c, var(--cyan)); border-radius:4px; padding:6px 10px; min-width:0; background:rgba(0,0,0,.2)}
+.kpi small{display:block; font:500 10px/1.2 "JetBrains Mono", monospace; color:var(--muted); letter-spacing:.06em; text-transform:uppercase}
+.kpi strong{display:block; font:700 17px/1.2 "JetBrains Mono", monospace; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.kpi span{display:block; font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.tools{display:flex; flex-wrap:wrap; gap:6px; grid-column:1/-1}
+.tools .sep{flex:1}
+
+.stage{grid-area:stage; position:relative; min-height:0; overflow:hidden; border:1px solid var(--line2); border-radius:8px; background:radial-gradient(ellipse at 50% 30%, #0b1a24 0%, var(--bg) 70%)}
+.stage canvas{position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; outline:none}
+.css2d{position:absolute; inset:0; pointer-events:none; overflow:hidden}
+.tag{transform:translate(-50%,-100%); white-space:nowrap; pointer-events:none; background:rgba(6,10,16,.62); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid var(--c, var(--cyan)); border-radius:3px; padding:4px 8px; font:600 11px/1.3 "JetBrains Mono", monospace; letter-spacing:.04em; color:var(--fg)}
+.tag .s{display:none; font:400 10px/1.3 "Inter", sans-serif; color:var(--muted); letter-spacing:0; margin-top:2px}
+.tag.open .s{display:block}
+.lvl{font:600 10px/1 "JetBrains Mono", monospace; color:var(--muted); letter-spacing:.12em; white-space:nowrap; pointer-events:none; text-transform:uppercase}
+.hint{position:absolute; left:14px; bottom:12px; font:400 11px/1.4 "JetBrains Mono", monospace; color:var(--muted); pointer-events:none; max-width:70%}
+.wm{position:absolute; right:12px; top:10px; z-index:4; font:500 10px/1 "JetBrains Mono", monospace; color:var(--muted); opacity:.7; pointer-events:none; letter-spacing:.06em}
+.msg{position:absolute; inset:0; display:grid; place-items:center; padding:24px; text-align:center; color:var(--muted)}
+.msg[hidden]{display:none}
+
+.card{position:absolute; top:14px; right:14px; width:min(340px, calc(100% - 28px)); z-index:5; background:rgba(7,13,20,.9); border:1px solid var(--line); border-left:2px solid var(--c, var(--cyan)); border-radius:6px; padding:14px 14px 12px; backdrop-filter:blur(10px); max-height:calc(100% - 28px); overflow:auto}
+.card[hidden]{display:none}
+.card h3{margin:0 0 8px; font:700 13px/1.3 "JetBrains Mono", monospace; color:var(--c, var(--cyan)); text-transform:uppercase}
+.card dl{margin:0; display:grid; gap:10px}
+.card dt{font:600 10px/1.2 "JetBrains Mono", monospace; color:var(--muted); letter-spacing:.1em; text-transform:uppercase}
+.card dd{margin:2px 0 0; font-size:13px; line-height:1.5}
+.card .x{position:absolute; top:6px; right:6px; padding:4px 7px}
+.editbar{position:absolute; left:50%; top:12px; transform:translateX(-50%); z-index:6; background:rgba(40,20,0,.85); border:1px solid var(--amber); border-radius:4px; padding:8px 10px; font:500 11px/1.3 "JetBrains Mono", monospace; color:var(--amber); max-width:calc(100% - 28px)}
+.editbar[hidden]{display:none}
+
+.panel{position:absolute; left:14px; bottom:44px; z-index:6; width:min(560px, calc(100% - 28px)); max-height:calc(100% - 80px); overflow:auto; background:rgba(7,13,20,.96); border:1px solid var(--line); border-radius:6px; padding:12px; display:grid; gap:10px}
+.panel[hidden]{display:none}
+.panel h4{margin:0; font:600 11px/1.2 "JetBrains Mono", monospace; color:var(--cyan); letter-spacing:.06em; text-transform:uppercase}
+.panel .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.panel .row span{font-size:11px; color:var(--muted); margin-right:auto}
+.panel textarea{height:220px; resize:vertical}
+.err{color:var(--red); font:500 11px/1.4 "JetBrains Mono", monospace}
+.files{font:400 11px/1.5 "Inter", sans-serif; color:var(--muted)}
+.files li{margin:2px 0}
+
+.bottom{grid-area:bottom; padding:10px 14px; display:grid; gap:10px; grid-template-columns:minmax(0,1fr) minmax(0,1.6fr)}
+.brief{font:400 13px/1.5 "Inter", sans-serif; border-left:2px solid var(--c, var(--cyan)); padding-left:12px; min-width:0}
+.brief b{display:block; font:700 11px/1.2 "JetBrains Mono", monospace; color:var(--c, var(--cyan)); letter-spacing:.06em; text-transform:uppercase; margin-bottom:4px}
+.mini{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; min-width:0}
+.mini > div{min-width:0}
+.mini h4{margin:0 0 6px; font:600 10px/1.2 "JetBrains Mono", monospace; color:var(--muted); letter-spacing:.08em; text-transform:uppercase}
+.mrow{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 8px; align-items:center; margin-bottom:5px; font-size:11px; color:var(--muted)}
+.mrow b{font:600 11px/1 "JetBrains Mono", monospace; color:var(--fg); white-space:nowrap; font-variant-numeric:tabular-nums}
+.mrow.on{color:var(--fg)}
+.mtrack{grid-column:1/-1; height:6px; background:rgba(255,255,255,.06); border-radius:2px; overflow:hidden}
+.mtrack i{display:block; height:100%; background:var(--c); box-shadow:0 0 8px var(--c); transition:width .6s ease}
+.mrow:not(.on) .mtrack i{opacity:.45}
+
+.hud-show{position:fixed; right:16px; bottom:16px; z-index:9; display:none; background:rgba(7,13,20,.9)}
+.app.hud-off .hud{display:none}
+.app.hud-off .hud-show{display:block}
+.app.hud-off{padding-block:0}
+
+@media (max-width:900px){
+  .app{height:auto; grid-template-rows:auto auto auto}
+  .stage{height:62vh; min-height:400px}
+  .bottom,.top{grid-template-columns:minmax(0,1fr)}
+  .mini{grid-template-columns:minmax(0,1fr)}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <header class="hud top">
+    <div style="min-width:0">
+      <span class="sys" id="proj-name">GHAPHEROS</span>
+      <span class="sub" id="proj-sub">Centro de comando · cargando proyecto…</span>
+    </div>
+    <nav class="scen" id="scen" aria-label="Escenarios"></nav>
+    <div class="kpis" id="kpis"></div>
+    <div class="tools">
+      <button type="button" id="btn-cine" aria-pressed="false">MODO PRESENTACIÓN</button>
+      <button type="button" id="btn-edit" aria-pressed="false">AJUSTAR NODOS</button>
+      <button type="button" id="btn-save">GUARDAR POSICIONES</button>
+      <button type="button" id="btn-panel" aria-pressed="false">EDITOR DEL PROYECTO</button>
+      <button type="button" id="btn-reset">RESTABLECER EJEMPLO</button>
+      <span class="sep"></span>
+      <button type="button" id="btn-hud">OCULTAR HUD</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <canvas id="gl" role="img" aria-label="Escena 3D interactiva del proceso"></canvas>
+    <div class="msg" id="msg" hidden></div>
+    <aside class="card" id="card" hidden>
+      <button class="x" type="button" id="card-x" aria-label="Cerrar">X</button>
+      <h3 id="card-t"></h3>
+      <dl>
+        <div><dt>Qué es</dt><dd id="card-es"></dd></div>
+        <div><dt>Qué pasa hoy</dt><dd id="card-hoy"></dd></div>
+        <div><dt>Cómo mejora</dt><dd id="card-mej"></dd></div>
+      </dl>
+    </aside>
+    <div class="editbar" id="editbar" hidden>MODO AJUSTAR · arrastra un equipo sobre el plano. Clic en vacío para soltar.</div>
+
+    <section class="panel" id="panel" hidden aria-label="Editor del proyecto">
+      <h4>Editor del proyecto</h4>
+      <div class="row">
+        <span>Edita el JSON del proyecto. Aplica los cambios para ver la escena actualizada.</span>
+        <button type="button" id="p-apply">APLICAR</button>
+        <button type="button" id="p-export">EXPORTAR JSON</button>
+      </div>
+      <textarea id="p-json" spellcheck="false" aria-label="JSON del proyecto"></textarea>
+      <div class="err" id="p-err" role="alert"></div>
+      <div class="row">
+        <span>Archivos de referencia (diagramas e informes)</span>
+        <select id="p-kind" aria-label="Tipo de archivo">
+          <option value="diagrama">Diagrama</option>
+          <option value="informe">Informe</option>
+        </select>
+        <input type="file" id="p-files" multiple aria-label="Subir archivos">
+      </div>
+      <ul class="files" id="p-files-list"></ul>
+      <p class="files">Nota: en esta versión los archivos se listan en el proyecto; no se interpretan automáticamente. Interpretar .vsdx, PDF o DOCX es la siguiente fase.</p>
+    </section>
+
+    <div class="hint" id="hint">ARRASTRAR: orbitar · RUEDA: zoom · W A S D / FLECHAS: desplazar · CLIC: detalle</div>
+  </main>
+
+  <section class="hud bottom">
+    <div class="brief" id="brief"><b></b><span></span></div>
+    <div class="mini" id="mini"></div>
+  </section>
+
+  <button class="hud-show" type="button" id="btn-hud-show">MOSTRAR HUD</button>
+</div>
+
+<script src="packages/core/viewer.js"></script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+{
+  "project": {
+    "name": "Ejemplo · Ruta de ingesta",
+    "client": "Cliente de ejemplo",
+    "classification": "Uso restringido",
+    "description": "Datos genéricos de ejemplo. Reemplázalos desde el editor con los datos de tu proyecto."
+  },
+  "levels": [
+    {"id": "L0", "y": 0,  "name": "Nivel inferior · sitio de origen"},
+    {"id": "L1", "y": 5,  "name": "Nivel medio · datacenter y core"},
+    {"id": "L2", "y": 10, "name": "Nivel superior · frontera y nube"}
+  ],
+  "nodes": [
+    {"id": "captura", "level": "L0", "x": -12, "z": 6, "w": 2.4, "h": 1.2, "d": 1.8,
+     "label": "CAPTURA", "sub": {"all": "Origen de los datos"},
+     "card": {"title": "Origen de los datos", "es": "Equipo o sitio que genera la información. Aquí empieza el proceso.", "hoy": "Los datos salen en medios físicos hacia el sitio de ingesta.", "mejora": "El punto de partida no cambia; cambia el equipo que lo recibe."}},
+    {"id": "ingesta", "level": "L0", "x": -7, "z": 3, "w": 2.4, "h": 1.3, "d": 1.8,
+     "label": "INGESTA", "sub": {"hoy": "1 Gbps", "fase": "10 Gbps"},
+     "card": {"title": "Equipo de ingesta", "es": "Recibe los datos en el sitio de origen.", "hoy": "Su puerto limita toda la cadena a 1 Gbps.", "mejora": "Pasa a 10 Gbps y deja de ser el cuello de botella."}},
+    {"id": "acceso", "level": "L0", "x": -3.5, "z": 3, "w": 1.9, "h": 0.8, "d": 1.3,
+     "label": "SWITCH DE ACCESO", "sub": {"hoy": "1 Gbps · fin de vida", "fase": "Sustituido"},
+     "card": {"title": "Switch de acceso", "es": "Switch que conecta el equipo de ingesta a la red interna.", "hoy": "Está fuera de soporte del fabricante.", "mejora": "Se sustituye por un equipo de 10 Gbps con soporte vigente."}},
+    {"id": "agente", "level": "L0", "x": -7, "z": 8.5, "w": 2.4, "h": 1.3, "d": 1.8,
+     "label": "AGENTE DE COPIA · LOCAL", "sub": {"fase": "Junto al origen"},
+     "card": {"title": "Agente de copia local", "es": "Herramienta de copia instalada dentro de la red del cliente.", "hoy": "No existe.", "mejora": "Lee los datos por la red interna. Solo el flujo final sale hacia la nube."}},
+    {"id": "fabric", "level": "L1", "x": 0, "z": 2, "w": 3.4, "h": 1.2, "d": 2,
+     "label": "FABRIC DEL DATACENTER", "sub": {"all": "Capacidad de sobra"},
+     "card": {"title": "Fabric del datacenter", "es": "Red interna de alta velocidad entre servidores y almacenamiento.", "hoy": "Tiene capacidad de sobra; el dato solo la atraviesa.", "mejora": "Sirve como autopista interna para la copia local."}},
+    {"id": "core", "level": "L1", "x": 5, "z": -5, "w": 3.4, "h": 1.2, "d": 2,
+     "label": "CORE 100G", "sub": {"all": "Uso bajo · ocioso"},
+     "card": {"title": "Core de la red", "es": "Núcleo de la red con enlaces de 100 Gbps.", "hoy": "Capacidad ociosa mientras el proceso se frena en el puerto de 1 Gbps.", "mejora": "No requiere ampliación."}},
+    {"id": "almacen", "level": "L1", "x": 9, "z": 1, "w": 2.6, "h": 1.8, "d": 2.2,
+     "label": "ALMACENAMIENTO", "sub": {"all": "Repositorio institucional"},
+     "card": {"title": "Almacenamiento institucional", "es": "Repositorio donde reside la información oficial.", "hoy": "El dato cruza el fabric antes de quedar almacenado.", "mejora": "Es el origen que la copia local lee por la red interna."}},
+    {"id": "frontera", "level": "L2", "x": 13, "z": -4, "w": 2.4, "h": 1.3, "d": 1.8,
+     "label": "FIREWALL Y VPN", "sub": {"all": "Túnel cifrado · 300 Mbps contratados"},
+     "card": {"title": "Frontera y VPN", "es": "Salida a Internet y túnel cifrado hacia la nube.", "hoy": "Cada operación de copia cruza este túnel y espera respuesta.", "mejora": "Pasa un único flujo cifrado y continuo."}},
+    {"id": "agente_nube", "level": "L2", "x": 18, "z": -10, "w": 2.4, "h": 1.3, "d": 1.8,
+     "label": "AGENTE EN LA NUBE", "sub": {"hoy": "Lee archivo por archivo", "fase": "Ya no copia"},
+     "card": {"title": "Agente de copia en la nube", "es": "Programa de copia que corre en la nube.", "hoy": "Lee cada archivo por la VPN y espera la respuesta en cada operación.", "mejora": "Sale del camino de lectura."}},
+    {"id": "destino", "level": "L2", "x": 20, "z": -1, "w": 2.6, "h": 1.3, "d": 2,
+     "label": "DESTINO EN LA NUBE", "sub": {"all": "Almacenamiento en la nube"},
+     "card": {"title": "Destino en la nube", "es": "Almacenamiento final de la copia en la nube.", "hoy": "Recibe la copia a la velocidad que le llega.", "mejora": "Recibe un flujo continuo; el límite pasa a ser el enlace."}}
+  ],
+  "flows": [
+    {"path": ["captura", "ingesta"], "lift": 0.9, "color": "amber", "count": 4, "speed": 0.09, "scenes": ["hoy", "fase", "futuro"]},
+    {"path": ["ingesta", "acceso"], "lift": 0.9, "color": "red", "count": 3, "speed": 0.035, "scenes": ["hoy"]},
+    {"path": ["acceso", "fabric", "almacen"], "lift": 0.9, "color": "amber", "count": 4, "speed": 0.08, "scenes": ["hoy"]},
+    {"path": ["almacen", "core", "frontera", "agente_nube"], "lift": 1.7, "color": "red", "count": 4, "speed": 0.06, "pingpong": true, "scenes": ["hoy"]},
+    {"path": ["almacen", "core", "frontera", "agente_nube"], "lift": 2.5, "color": "amber", "count": 4, "speed": 0.06, "pingpong": true, "scenes": ["hoy"]},
+    {"path": ["ingesta", "agente"], "lift": 0.9, "color": "green", "count": 3, "speed": 0.12, "scenes": ["fase"]},
+    {"path": ["agente", "fabric", "almacen"], "lift": 0.9, "color": "green", "count": 6, "speed": 0.14, "scenes": ["fase"]},
+    {"path": ["agente", "fabric", "core", "frontera", "destino"], "lift": 1.8, "color": "cyan", "count": 4, "speed": 0.09, "scenes": ["fase"]},
+    {"path": ["fabric", "core"], "lift": 0.5, "color": "cyan", "count": 2, "speed": 0.03, "dim": true, "scenes": ["hoy", "fase", "futuro"]},
+    {"path": ["captura", "ingesta"], "lift": 0.9, "color": "green", "count": 4, "speed": 0.12, "scenes": ["futuro"]},
+    {"path": ["ingesta", "frontera", "destino"], "lift": 1.6, "color": "cyan", "count": 3, "speed": 0.07, "scenes": ["futuro"]}
+  ],
+  "scenarios": [
+    {"id": "hoy", "label": "01 HOY", "tag": "01 · RUTA ACTUAL",
+     "brief": "Los datos se frenan en un puerto de 1 Gbps. El core de 100G está ocioso y cada operación de copia hace ida y vuelta por la VPN.",
+     "color": "var(--red)",
+     "cam": {"pos": [-12, 22, 30], "target": [5, 4, 0]},
+     "states": {"captura": "amber", "ingesta": "red", "acceso": "red", "agente": "hidden", "agente_nube": "red"},
+     "kpis": [
+       {"label": "Throughput efectivo", "value": "240 Mbps", "sub": "medido", "color": "var(--red)"},
+       {"label": "Tiempo · lote 500 GB", "value": "> 5 h", "sub": "copia real", "color": "var(--red)"},
+       {"label": "Viajes por la WAN", "value": "Ida y vuelta", "sub": "por archivo", "color": "var(--red)"},
+       {"label": "Eficiencia core 100G", "value": "< 5 %", "sub": "ocioso", "color": "var(--cyan)"}
+     ]},
+    {"id": "fase", "label": "02 FASE 1–2", "tag": "02 · MITIGACIÓN EN ORIGEN",
+     "brief": "El equipo de ingesta pasa a 10 Gbps y el agente de copia se instala junto al origen. Solo sale un flujo continuo y cifrado.",
+     "color": "var(--green)",
+     "cam": {"pos": [-6, 20, 26], "target": [2, 4, 2]},
+     "states": {"captura": "amber", "ingesta": "green", "acceso": "retired", "agente": "green", "agente_nube": "retired"},
+     "kpis": [
+       {"label": "Throughput efectivo", "value": "600–700 Mbps", "sub": "meta del piloto", "color": "var(--green)"},
+       {"label": "Tiempo · lote 500 GB", "value": "≈ 35–40 min", "sub": "meta", "color": "var(--green)"},
+       {"label": "Viajes por la WAN", "value": "1 flujo", "sub": "continuo y cifrado", "color": "var(--green)"},
+       {"label": "Eficiencia core 100G", "value": "< 5 %", "sub": "sin ampliar", "color": "var(--cyan)"}
+     ]},
+    {"id": "futuro", "label": "03 OPCIÓN FASE 3", "tag": "03 · OPCIÓN ESTRATÉGICA",
+     "brief": "Una zona de nube instalada dentro de las instalaciones procesa en sitio. La sincronización con la nube sigue dependiendo del enlace.",
+     "color": "var(--cyan)",
+     "cam": {"pos": [-4, 18, 24], "target": [0, 3, 4]},
+     "states": {"captura": "amber", "ingesta": "green", "acceso": "retired", "agente": "hidden", "agente_nube": "retired", "frontera": "normal"},
+     "kpis": [
+       {"label": "Sincronización", "value": "≈ 400 Mbps", "sub": "servicio local", "color": "var(--cyan)"},
+       {"label": "Procesamiento", "value": "Local", "sub": "sin salir de las instalaciones", "color": "var(--cyan)"},
+       {"label": "Viajes por la WAN", "value": "Solo sync", "sub": "diferencial y respaldo", "color": "var(--cyan)"},
+       {"label": "Eficiencia core 100G", "value": "< 5 %", "sub": "sin ampliar", "color": "var(--cyan)"}
+     ]}
+  ],
+  "metrics": [
+    {"title": "Tasa de transferencia (Mbps)", "scale": 1000, "rows": [
+      {"label": "Hoy · medido", "value": 240, "text": "240", "scene": "hoy", "color": "var(--red)"},
+      {"label": "Fase 1–2 · meta", "value": 650, "text": "600–700", "scene": "fase", "color": "var(--green)"},
+      {"label": "Fase 3 · sincronización", "value": 400, "text": "≈ 400", "scene": "futuro", "color": "var(--cyan)"}
+    ]},
+    {"title": "Latencia por operación", "scale": 100, "rows": [
+      {"label": "Hoy · ida por la WAN", "value": 80, "text": "≈ 80 ms", "scene": "hoy", "color": "var(--red)"},
+      {"label": "Fase 1–2 · red interna", "value": 1, "text": "< 1 ms", "scene": "fase", "color": "var(--green)"}
+    ]}
+  ],
+  "attachments": [
+    {"name": "diagrama_arquitectura.vsdx", "kind": "diagrama", "note": "Ejemplo: diagrama de red fuente"},
+    {"name": "informe_tecnico.pdf", "kind": "informe", "note": "Ejemplo: informe técnico de auditoría"},
+    {"name": "informe_ejecutivo.pdf", "kind": "informe", "note": "Ejemplo: resumen para decisión"}
+  ]
+}

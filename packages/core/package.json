@@ -1,0 +1,9 @@
+{
+  "name": "@ghapheros/core",
+  "version": "0.1.0",
+  "description": "Visor 3D de GhapherOS: escena, escenarios, métricas y bus de eventos para extensiones.",
+  "main": "viewer.js",
+  "files": ["viewer.js", "README.md"],
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {"type": "git", "url": "https://github.com/deepcanoom/GhapherOS.git", "directory": "packages/core"}
+}

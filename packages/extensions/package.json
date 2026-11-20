@@ -1,0 +1,10 @@
+{
+  "name": "@ghapheros/extensions",
+  "version": "0.1.0",
+  "description": "Extensiones opcionales de GhapherOS. Cada extensión se registra con window.GhapherOS.on(evento, fn).",
+  "main": "examples/scenario-log.js",
+  "files": ["examples", "README.md"],
+  "peerDependencies": {"@ghapheros/core": "^0.1.0"},
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {"type": "git", "url": "https://github.com/deepcanoom/GhapherOS.git", "directory": "packages/extensions"}
+}

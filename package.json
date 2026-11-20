@@ -1,0 +1,10 @@
+{
+  "name": "ghapheros",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GhapherOS: centro de comando 3D para explicar arquitecturas y procesos.",
+  "license": "SEE LICENSE IN LICENSE",
+  "workspaces": [
+    "packages/*"
+  ]
+}

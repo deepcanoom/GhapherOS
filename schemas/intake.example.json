@@ -1,0 +1,26 @@
+{
+  "$comment": "Plantilla de entrada mínima. Ejemplo genérico: reemplaza los valores por los de tu proyecto. Sin datos de clientes.",
+  "proyecto": {
+    "nombre": "Ruta de ingesta de datos",
+    "cliente": "Cliente de ejemplo",
+    "clasificacion": "Uso restringido"
+  },
+  "audiencia": "Dirección técnica y directivos que deben aprobar una inversión",
+  "decision": "Aprobar un piloto para acercar la copia de datos al origen",
+  "problema": "La copia de datos hacia la nube tarda días porque el punto de ingesta está limitado a 1 Gbps y el agente de copia está lejos del origen.",
+  "escenarios": [
+    {"id": "hoy", "nombre": "Situación actual", "linea": "Cómo viaja hoy el dato y dónde se frena"},
+    {"id": "fase", "nombre": "Mitigación en origen", "linea": "Qué cambia al acercar el agente y subir el puerto"},
+    {"id": "futuro", "nombre": "Opción estratégica", "linea": "Qué se decide con cifras medidas"}
+  ],
+  "materiales": [
+    {"archivo": "materiales/diagrama_red.vsdx", "tipo": "diagrama", "nota": "Topología vigente"},
+    {"archivo": "materiales/informe_tecnico.pdf", "tipo": "informe", "nota": "Causa raíz y plan de medición"},
+    {"archivo": "materiales/informe_ejecutivo.pdf", "tipo": "informe", "nota": "Resumen para decisión"}
+  ],
+  "opcional": {
+    "cifras_medidas": null,
+    "equipos_excluidos": [],
+    "paleta": null
+  }
+}
